@@ -1,6 +1,8 @@
 <template>
   <div class="workspace">
 
+    <EconomyPanel />
+
     <div class="workspace__craft-header">
       <button 
         class="workspace__craft-button"
@@ -11,7 +13,10 @@
         {{ craftMode ? 'Выйти из крафта' : 'Режим крафта' }}
       </button>
       
-      <div v-if="elementForCraft" class="workspace__craft-selected">
+      <div 
+        v-if="elementForCraft" 
+        class="workspace__craft-item workspace__craft-item--selected"
+      >
         Выбран: {{ elementForCraft.icon }} {{ elementForCraft.name }}
       </div>
     </div>
@@ -33,7 +38,8 @@
     <div class="workspace__actions">
       <button 
         class="workspace__button workspace__button--mix" 
-        @click="() => mixElements()"
+        @click="() => startCrafting()"
+        :disabled="!canStartCrafting"
       >
         Смешать
       </button>
@@ -50,15 +56,26 @@
 <script setup>
 import AlchemyTableItem from './AlchemyTableItem.vue'
 import AlchemyCraftGrid from './AlchemyCraftGrid.vue'
+import EconomyPanel from './EconomyPanel.vue'
 import { computed } from 'vue'
 import { useStore } from 'vuex'
 
 const store = useStore()
 const tableItems = computed(() => store.getters['alchemy/tableItems'])
+const freeWorkers = computed(() => store.getters['alchemy/freeWorkers'])
 
 const resetTable = () => store.dispatch('alchemy/resetTable')
 const mixElements = () => store.dispatch('alchemy/mixElements')
 const toggleCraftMode = () => store.dispatch('alchemy/toggleCraftMode')
+
+const canStartCrafting = computed(() => {
+  return freeWorkers.value > 0
+})
+
+const startCrafting = () => {
+  store.dispatch('alchemy/startCrafting')
+}
+
 </script>
 
 <style scoped lang="scss">
@@ -110,12 +127,15 @@ const toggleCraftMode = () => store.dispatch('alchemy/toggleCraftMode')
     font-size: 14px;
   }
 
-  &__craft-selected {
+  &__craft-item {
     font-size: 13px;
-    color: #fbbf24;
-    background: #1e293b;
     padding: 4px 8px;
     border: 1px solid #4a5568;
+    
+    &--selected {
+      color: #fbbf24;
+      background: #1e293b;
+    }
   }
 
   &__items {
